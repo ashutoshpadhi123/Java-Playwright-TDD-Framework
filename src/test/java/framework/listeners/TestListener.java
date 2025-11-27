@@ -1,53 +1,50 @@
 package framework.listeners;
 
-import com.microsoft.playwright.Page;
+import com.aventstack.extentreports.Status;
+import framework.reports.ExtentManager;
+import framework.reports.ExtentTestManager;
 import framework.base.BaseTest;
-import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.io.File;
 
-public class TestListener implements ITestListener {
+public class TestListener extends BaseTest implements ITestListener {
+
+    @Override
+    public void onTestStart(ITestResult result) {
+        ExtentTestManager.startTest(result.getMethod().getMethodName());
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        ExtentTestManager.getTest().log(Status.PASS, "Test Passed");
+    }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        Page page = BaseTest.getCurrentPage();
-        if (page == null) {
-            return;
+        // 🔹 FORCE CREATE reports folder
+        String reportDir = "reports";
+        File folder = new File(reportDir);
+        if (!folder.exists()) {
+            boolean created = folder.mkdirs();
+            System.out.println("Reports folder created: " + created);
+        } else {
+            System.out.println("Reports folder exists.");
         }
 
-        try {
-            Path screenshotsDir = Paths.get("screenshots");
-            if (!Files.exists(screenshotsDir)) {
-                Files.createDirectories(screenshotsDir);
-            }
-
-            String timestamp = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-
-            String fileName = result.getMethod().getMethodName() + "_" + timestamp + ".png";
-            Path screenshotPath = screenshotsDir.resolve(fileName);
-
-            page.screenshot(new Page.ScreenshotOptions()
-                    .setPath(screenshotPath)
-                    .setFullPage(true));
-
-            System.out.println("Saved screenshot: " + screenshotPath.toAbsolutePath());
-        } catch (IOException e) {
-            System.err.println("Failed to capture screenshot: " + e.getMessage());
-        }
+        // Screenshot capture
+        String screenshotPath = takeScreenshot(result.getMethod().getMethodName());
+        ExtentTestManager.getTest().fail("Test Failed")
+                .addScreenCaptureFromPath(screenshotPath);
+        ExtentTestManager.getTest().log(Status.FAIL, result.getThrowable().getMessage());
     }
 
-    @Override public void onTestStart(ITestResult result) { }
-    @Override public void onTestSuccess(ITestResult result) { }
-    @Override public void onTestSkipped(ITestResult result) { }
-    @Override public void onTestFailedButWithinSuccessPercentage(ITestResult result) { }
-    @Override public void onStart(ITestContext context) { }
-    @Override public void onFinish(ITestContext context) { }
+    @Override
+    public void onFinish(org.testng.ITestContext context) {
+        String reportPath = new File("reports/extent-report.html").getAbsolutePath();
+        System.out.println("Flushing Extent Report...");
+        System.out.println("Report generated at: " + reportPath);
+        ExtentManager.getInstance().flush();
+    }
 }

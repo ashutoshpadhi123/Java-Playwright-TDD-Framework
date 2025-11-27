@@ -6,6 +6,7 @@ import framework.utils.PlaywrightFactory;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 
+import java.io.File;
 import java.nio.file.Paths;
 
 public class BaseTest {
@@ -36,11 +37,19 @@ public class BaseTest {
     public String takeScreenshot(String testName) {
         try {
             String timestamp = String.valueOf(System.currentTimeMillis());
-            String screenshotPath = "screenshots/" + testName + "_" + timestamp + ".png";
+            String screenshotDir = "screenshots/";
+            String screenshotPath = screenshotDir + testName + "_" + timestamp + ".png";
+
+            // 🔹 Create directory if it doesn’t exist
+            File folder = new File(screenshotDir);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                System.out.println("Created screenshot folder: " + folder.getAbsolutePath());
+            }
 
             getCurrentPage().screenshot(new Page.ScreenshotOptions()
                     .setPath(Paths.get(screenshotPath))
-                    .setFullPage(true));
+                    .setFullPage(true));  // full-page screenshot
 
             System.out.println("Screenshot saved: " + screenshotPath);
             return screenshotPath;
