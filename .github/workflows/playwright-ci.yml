@@ -42,8 +42,8 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Install Playwright Browsers
-        run: mvn playwright:install
+      - name: Install Playwright Browsers via Java
+        run: mvn -q exec:java -Dexec.mainClass="setup.BrowserInstaller" || true
 
       - name: Run Playwright Tests
         run: |
