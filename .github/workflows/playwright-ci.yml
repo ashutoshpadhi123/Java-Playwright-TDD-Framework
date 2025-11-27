@@ -3,13 +3,15 @@ name: Playwright UI Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        browser: [chrome, firefox]   # Webkit removed
+        browser: [chrome, firefox]
 
     steps:
       - name: Checkout repository
@@ -33,10 +35,15 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Install Playwright Browsers via Java
-        run: mvn -q exec:java -Dexec.mainClass="setup.BrowserInstaller" || true
+      - name: Install Playwright Linux dependencies
+        run: |
+          sudo mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install-deps"
 
-      - name: Run Playwright Tests
+      - name: Install Playwright Browsers via Java
+        run: |
+          mvn -q exec:java -Dexec.mainClass="setup.BrowserInstaller" || true
+
+      - name: Run Playwright Tests (headless)
         run: |
           echo "Running on browser: ${{ matrix.browser }}"
           mvn -B test \
