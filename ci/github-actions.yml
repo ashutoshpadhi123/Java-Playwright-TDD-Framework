@@ -8,7 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
-      matrix:                        # 🔥 Parallel browser execution
+      matrix:
         browser: [chrome, firefox, webkit]
 
     steps:
@@ -21,33 +21,41 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node (required for Playwright internally)
+      - name: Setup Node (required for Playwright)
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
+      - name: Install WebKit dependencies (Linux only)
+        if: matrix.browser == 'webkit'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a \
+            libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 \
+            libegl1 libgles2 libevent-2.1-7 libnotify4 libxslt1.1
 
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-cache-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-cache-
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
 
-      - name: Install Playwright Browsers
-        run: mvn playwright:install
+      - name: Install Playwright Browsers via Java
+        run: mvn -q exec:java -Dexec.mainClass="setup.BrowserInstaller" || true
 
-      - name: Run Playwright Tests 🚀
+      - name: Run Playwright Tests
         run: |
-          echo "Running tests on browser -> ${{ matrix.browser }}"
+          echo "Running on browser: ${{ matrix.browser }}"
           mvn -B test \
             -DBROWSER=${{ matrix.browser }} \
             -DHEADLESS=true \
             -Dsurefire.parallel=methods \
             -Dsurefire.threadCount=4
 
-      - name: Upload Reports & Screenshots 📁
-        if: always()          # Upload even if tests fail!
+      - name: Upload Reports & Screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reports-${{ matrix.browser }}
