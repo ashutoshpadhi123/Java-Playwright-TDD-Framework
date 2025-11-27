@@ -3,13 +3,14 @@ name: Playwright UI Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:  # 👈 Enables manual run via UI
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        browser: [chrome, firefox]   # Webkit removed
+        browser: [chrome, firefox]   # Webkit removed OK
 
     steps:
       - name: Checkout repository
@@ -32,6 +33,15 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
+
+      # 🔹 Fix for your FIRST error (missing Linux dependencies)
+      - name: Install Required Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwoff1 libvpx9 libevent-2.1-7t64 libopus0 \
+          libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0 libgstreamer-plugins-bad1.0-0 \
+          libflite1 libavif16 libharfbuzz-icu0 libsecret-1-0 libhyphen0 \
+          libmanette-0.2-0 libgles2 gstreamer1.0-libav
 
       - name: Install Playwright Browsers via Java
         run: mvn -q exec:java -Dexec.mainClass="setup.BrowserInstaller" || true

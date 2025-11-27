@@ -24,7 +24,7 @@ public class PlaywrightFactory {
         switch (browserName.toLowerCase()) {
             case "firefox":
                 browser = playwright.firefox().launch(
-                        new BrowserType.LaunchOptions().setHeadless(false)
+                        new BrowserType.LaunchOptions().setHeadless(true)
                 );
                 break;
 
@@ -38,7 +38,7 @@ public class PlaywrightFactory {
                 browser = playwright.chromium().launch(
                         new BrowserType.LaunchOptions()
                                 .setChannel("chrome")          // real Chrome
-                                .setHeadless(false)            // GUI mode only
+                                .setHeadless(true)            // GUI mode only
                                 .setArgs(Arrays.asList("--start-maximized", "--disable-gpu"))
                 );
                 break;
