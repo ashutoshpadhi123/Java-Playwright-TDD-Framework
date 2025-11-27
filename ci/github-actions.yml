@@ -8,8 +8,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        browser: [chrome, firefox, webkit]     # MULTI-BROWSER EXECUTION 🚀
+      matrix:                        # 🔥 Parallel browser execution
+        browser: [chrome, firefox, webkit]
 
     steps:
       - name: Checkout repository
@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node (Playwright uses Node internally)
+      - name: Setup Node (required for Playwright internally)
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -30,23 +30,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven-cache-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-cache-
 
       - name: Install Playwright Browsers
-        run: mvn playwright:install        # IMPORTANT ⚡
+        run: mvn playwright:install
 
-      - name: Run Tests in Headless Mode (Parallel + Multi-Browser)
+      - name: Run Playwright Tests 🚀
         run: |
-          echo "Running on browser: ${{ matrix.browser }}"
+          echo "Running tests on browser -> ${{ matrix.browser }}"
           mvn -B test \
             -DBROWSER=${{ matrix.browser }} \
             -DHEADLESS=true \
             -Dsurefire.parallel=methods \
             -Dsurefire.threadCount=4
 
-      - name: Upload Extent Report & Screenshots
-        if: always()     # Upload even if tests fail
+      - name: Upload Reports & Screenshots 📁
+        if: always()          # Upload even if tests fail!
         uses: actions/upload-artifact@v4
         with:
           name: reports-${{ matrix.browser }}
