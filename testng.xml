@@ -18,4 +18,8 @@
     </classes>
   </test>
 
+  <listeners>
+    <listener class-name="framework.listeners.TestListener"/>
+  </listeners>
+
 </suite>

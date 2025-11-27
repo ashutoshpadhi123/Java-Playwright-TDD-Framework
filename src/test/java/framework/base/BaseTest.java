@@ -3,10 +3,10 @@ package framework.base;
 import com.microsoft.playwright.Page;
 import framework.utils.ConfigLoader;
 import framework.utils.PlaywrightFactory;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
+import org.testng.ITestResult;
+import org.testng.annotations.*;
+
+import java.nio.file.Paths;
 
 public class BaseTest {
 
@@ -23,11 +23,31 @@ public class BaseTest {
         tlPage.set(page);
     }
 
-
     @AfterMethod(alwaysRun = true)
-    public void tearDown() {
+    public void tearDown(ITestResult result) {
+        // 🔹 Take screenshot only if failed (or use ALWAYS screenshot)
+        if (result.getStatus() == ITestResult.FAILURE) {
+            takeScreenshot(result.getMethod().getMethodName());
+        }
+
         PlaywrightFactory.close();
         tlPage.remove();
+    }
+    public String takeScreenshot(String testName) {
+        try {
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String screenshotPath = "screenshots/" + testName + "_" + timestamp + ".png";
+
+            getCurrentPage().screenshot(new Page.ScreenshotOptions()
+                    .setPath(Paths.get(screenshotPath))
+                    .setFullPage(true));
+
+            System.out.println("Screenshot saved: " + screenshotPath);
+            return screenshotPath;
+        } catch (Exception e) {
+            System.out.println("Failed to capture screenshot: " + e.getMessage());
+            return null;
+        }
     }
 
     public static Page getCurrentPage() {
