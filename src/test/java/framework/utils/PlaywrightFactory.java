@@ -13,6 +13,10 @@ public class PlaywrightFactory {
     private static final ThreadLocal<Browser> tlBrowser = new ThreadLocal<>();
     private static final ThreadLocal<Page> tlPage = new ThreadLocal<>();
 
+    private static boolean isCI() {
+        return System.getenv("CI") != null;
+    }
+
     public static Page init(String browserName) {
         System.setProperty("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
         // Create Playwright instance
@@ -21,24 +25,23 @@ public class PlaywrightFactory {
         // Select browser based on input
         Browser browser;
 
+        boolean headless = isCI() || Boolean.parseBoolean(System.getProperty("HEADLESS", "false"));
+
         switch (browserName.toLowerCase()) {
             case "firefox":
                 browser = playwright.firefox().launch(
-                        new BrowserType.LaunchOptions().setHeadless(true)
+                        new BrowserType.LaunchOptions().setHeadless(headless)
                 );
                 break;
 
-            case "webkit":  // Safari engine
-                browser = playwright.webkit().launch(
-                        new BrowserType.LaunchOptions().setHeadless(false)
-                );
-                break;
+            case "webkit":
+                throw new RuntimeException("WebKit execution is disabled in CI");
 
-            default: // Chrome FULLSCREEN
+            default: // Chrome
                 browser = playwright.chromium().launch(
                         new BrowserType.LaunchOptions()
-                                .setChannel("chrome")          // real Chrome
-                                .setHeadless(true)            // GUI mode only
+                                .setChannel("chrome")
+                                .setHeadless(headless)
                                 .setArgs(Arrays.asList("--start-maximized", "--disable-gpu"))
                 );
                 break;
