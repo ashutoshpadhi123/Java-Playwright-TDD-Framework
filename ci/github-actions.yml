@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        browser: [chrome, firefox, webkit]
+        browser: [chrome, firefox]   # Webkit removed
 
     steps:
       - name: Checkout repository
@@ -25,15 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
-      - name: Install WebKit dependencies (Linux only)
-        if: matrix.browser == 'webkit'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a \
-            libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 \
-            libegl1 libgles2 libevent-2.1-7 libnotify4 libxslt1.1
 
       - name: Cache Maven packages
         uses: actions/cache@v4
