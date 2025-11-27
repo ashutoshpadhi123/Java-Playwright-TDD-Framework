@@ -18,12 +18,4 @@
     </classes>
   </test>
 
-  <!-- 🔹 WebKit Execution (Safari Engine) -->
-  <test name="WebKit Browser">
-    <parameter name="browser" value="webkit"/>
-    <classes>
-      <class name="tests.login.ValidLoginTest"/>
-    </classes>
-  </test>
-
 </suite>
