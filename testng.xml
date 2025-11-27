@@ -1,0 +1,29 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="Playwright UI Suite" parallel="tests" thread-count="3">
+
+  <!-- 🔹 Chrome Execution -->
+  <test name="Chrome Browser">
+    <parameter name="browser" value="chrome"/>
+    <classes>
+      <class name="tests.login.ValidLoginTest"/>
+      <class name="tests.login.InvalidLoginTest"/>
+    </classes>
+  </test>
+
+  <!-- 🔹 Firefox Execution -->
+  <test name="Firefox Browser">
+    <parameter name="browser" value="firefox"/>
+    <classes>
+      <class name="tests.login.ValidLoginTest"/>
+    </classes>
+  </test>
+
+  <!-- 🔹 WebKit Execution (Safari Engine) -->
+  <test name="WebKit Browser">
+    <parameter name="browser" value="webkit"/>
+    <classes>
+      <class name="tests.login.ValidLoginTest"/>
+    </classes>
+  </test>
+
+</suite>

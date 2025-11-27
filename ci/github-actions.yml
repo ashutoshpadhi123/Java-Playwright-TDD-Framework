@@ -1,0 +1,55 @@
+name: Playwright UI Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox, webkit]     # MULTI-BROWSER EXECUTION 🚀
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node (Playwright uses Node internally)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Install Playwright Browsers
+        run: mvn playwright:install        # IMPORTANT ⚡
+
+      - name: Run Tests in Headless Mode (Parallel + Multi-Browser)
+        run: |
+          echo "Running on browser: ${{ matrix.browser }}"
+          mvn -B test \
+            -DBROWSER=${{ matrix.browser }} \
+            -DHEADLESS=true \
+            -Dsurefire.parallel=methods \
+            -Dsurefire.threadCount=4
+
+      - name: Upload Extent Report & Screenshots
+        if: always()     # Upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ matrix.browser }}
+          path: |
+            reports/
+            screenshots/
